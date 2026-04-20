@@ -1,0 +1,175 @@
+// This is your Prisma schema file,
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Auth models
+model User {
+  id         String         @id @default(uuid())
+  email      String         @unique
+  name       String?
+  role       String?        // 'STUDENT' or 'FACULTY'
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime?      @updatedAt
+  identities UserIdentity[]
+  isDeleted  Boolean?       @default(false)
+
+  // Relations
+  attendances   Attendance[]
+  marks         Mark[]
+  registrations ActivityRegistration[]
+  fees          Fee[]
+  requests      Request[]
+
+  @@index([email])
+}
+
+model UserIdentity {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   String // 'Google', 'GitHub', 'EmailPassword', 'PhoneOTP', etc.
+  providerId String // Provider's unique user ID (or email for email/password)
+  metadata   Json? // Provider-specific data (passwordHash, tokens, profile data, etc.)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean? @default(false)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+}
+
+model Otp {
+  id         String   @id @default(uuid())
+  identifier String   // Phone number or email address
+  type       String   // 'phone' or 'email'
+  otp        String   // Hashed OTP
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  verified   Boolean  @default(false)
+  purpose    String?  // 'login', 'registration', 'password_reset', '2fa', etc.
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean? @default(false)
+
+  @@index([identifier, type])
+  @@index([expiresAt])
+  @@index([identifier, type, verified])
+}
+
+model Subject {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String
+  semester    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  attendances Attendance[]
+  marks       Mark[]
+  timetable   TimetableEntry[]
+}
+
+model Attendance {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  subjectId   Int
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  date        DateTime
+  status      String   // 'PRESENT', 'ABSENT'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  points      Int
+  type        String   // 'WORKSHOP', 'SPORT', 'CLUB', etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  registrations ActivityRegistration[]
+}
+
+model ActivityRegistration {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  activityId  Int
+  activity    Activity @relation(fields: [activityId], references: [id])
+  status      String   // 'REGISTERED', 'COMPLETED'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
+
+model Mark {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  subjectId   Int
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  type        String   // 'CA', 'MID_TERM', 'END_TERM'
+  score       Float
+  maxScore    Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
+
+model TimetableEntry {
+  id          Int      @id @default(autoincrement())
+  subjectId   Int
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  day         String   // 'MONDAY', etc.
+  startTime   String
+  endTime     String
+  room        String
+  facultyName String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
+
+model Fee {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  amount      Float
+  dueDate     DateTime
+  status      String   // 'PAID', 'PENDING'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
+
+model Request {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // 'LEAVE', 'QUERY'
+  subject     String?
+  message     String
+  status      String   // 'PENDING', 'APPROVED', 'REJECTED', 'RESOLVED'
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+}
