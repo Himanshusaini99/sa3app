@@ -1,0 +1,7 @@
+{
+  "name": "sa3app-root",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && npm install -g pnpm && pnpm install && pnpm start"
+  }
+}
