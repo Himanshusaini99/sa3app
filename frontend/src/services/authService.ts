@@ -27,7 +27,7 @@ export const authService = {
   localStorage.removeItem('userId');
   localStorage.removeItem('userRole');
 
-  window.location.href = '/login';
+  window.location.href = '/';
 },
 
   getCurrentUser: async () => {
