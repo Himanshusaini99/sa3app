@@ -13,8 +13,9 @@ import { Requests } from './pages/Requests';
 import { Profile } from './pages/Profile';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const userRole = localStorage.getItem('userRole');
-  return userRole ? <>{children}</> : <Navigate to="/login" />;
+  const token = localStorage.getItem('accessToken');
+
+  return token ? <>{children}</> : <Navigate to="/login" />;
 };
 
 const Home = () => {

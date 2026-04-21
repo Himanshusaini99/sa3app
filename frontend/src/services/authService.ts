@@ -21,13 +21,11 @@ export const authService = {
     return response.data;
   },
 
-  logout: () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('userId');
-  localStorage.removeItem('userRole');
+logout: () => {
+  localStorage.clear();
 
-  window.location.href = '/';
+  // IMPORTANT: clean redirect
+  window.location.replace('/login');
 },
 
   getCurrentUser: async () => {
