@@ -22,11 +22,13 @@ export const authService = {
   },
 
   logout: () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userRole');
-  },
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userRole');
+
+  window.location.href = '/login';
+},
 
   getCurrentUser: async () => {
     const response = await api.get('/auth/me');
